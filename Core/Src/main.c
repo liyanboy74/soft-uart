@@ -62,8 +62,8 @@ typedef enum {
 }SoftUartState_E;
 
 typedef struct {
+	__IO uint8_t 		TxNComplated;
 	uint8_t					Enable;
-	__IO uint8_t 		TxComplated;
 	uint8_t 				BitShift,BitConter;
 	uint8_t					Index,Size;
 	uint8_t* 				TxBuffer;
@@ -78,12 +78,12 @@ uint8_t SoftUart4TxBuffer[32];
 uint8_t SoftUart5TxBuffer[32];
 uint8_t SoftUart6TxBuffer[32];
 
-SoftUart_S SUart1={0,1,0,0,0,0,SoftUart1TxBuffer,GPIOB,GPIO_PIN_3};
-SoftUart_S SUart2={0,1,0,0,0,0,SoftUart2TxBuffer,GPIOB,GPIO_PIN_4};
-SoftUart_S SUart3={0,1,0,0,0,0,SoftUart3TxBuffer,GPIOB,GPIO_PIN_5};
-SoftUart_S SUart4={0,1,0,0,0,0,SoftUart4TxBuffer,GPIOB,GPIO_PIN_6};
-SoftUart_S SUart5={0,1,0,0,0,0,SoftUart5TxBuffer,GPIOB,GPIO_PIN_7};
-SoftUart_S SUart6={0,1,0,0,0,0,SoftUart6TxBuffer,GPIOB,GPIO_PIN_8};
+SoftUart_S SUart1={0,0,0,0,0,0,SoftUart1TxBuffer,GPIOB,GPIO_PIN_3};
+SoftUart_S SUart2={0,0,0,0,0,0,SoftUart2TxBuffer,GPIOB,GPIO_PIN_4};
+SoftUart_S SUart3={0,0,0,0,0,0,SoftUart3TxBuffer,GPIOB,GPIO_PIN_5};
+SoftUart_S SUart4={0,0,0,0,0,0,SoftUart4TxBuffer,GPIOB,GPIO_PIN_6};
+SoftUart_S SUart5={0,0,0,0,0,0,SoftUart5TxBuffer,GPIOB,GPIO_PIN_7};
+SoftUart_S SUart6={0,0,0,0,0,0,SoftUart6TxBuffer,GPIOB,GPIO_PIN_8};
 
 void SoftUartTransmitBit(SoftUart_S *SU,uint8_t Bit0_1)
 {
@@ -96,7 +96,7 @@ void SoftUartTxProcess(SoftUart_S *SU)
 	{
 		if(SU->BitConter==0)
 		{
-			SU->TxComplated=0;
+			SU->TxNComplated=1;
 			SU->BitShift=0;
 			SoftUartTransmitBit(SU,0);
 			SU->BitConter++;
@@ -120,12 +120,12 @@ void SoftUartTxProcess(SoftUart_S *SU)
 			SU->Index++;
 			if(SU->Size > SU->Index)
 			{
-				SU->TxComplated=0;
+				SU->TxNComplated=1;
 				SU->Enable=1;
 			}
 			else
 			{
-				SU->TxComplated=1;
+				SU->TxNComplated=0;
 				SU->Enable=0;
 			}
 		}
@@ -136,7 +136,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance==TIM2)
 	{
-		//HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_5);
 		SoftUartTxProcess(&SUart1);
 		SoftUartTxProcess(&SUart2);
 		SoftUartTxProcess(&SUart3);
@@ -146,29 +145,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
-SoftUartState_E SoftUart_Putchar(SoftUart_S *SU,uint8_t Ch)
-{
-	if(!(SU->TxComplated)) return SoftUart_Error;
-	
-	SU->Index=0;
-	SU->Size=1;
-	SU->TxBuffer[0]= Ch;
-	
-	SU->BitConter=0;
-	
-	SU->TxComplated=0;
-	SU->Enable=1;
-	
-	//while(!(SU->TxComplated));
-	
-	return SoftUart_OK;
-}
-
 SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len)
 {
 	int i;
 	
-	if(!(SU->TxComplated)) return SoftUart_Error;
+	if(SU->TxNComplated) return SoftUart_Error;
 	
 	SU->Index=0;
 	SU->Size=Len;
@@ -178,12 +159,10 @@ SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len)
 		SU->TxBuffer[i]= Str[i];
 	}
 	
-	SU->BitConter=0;
-	
-	SU->TxComplated=0;
+	SU->TxNComplated=1;
 	SU->Enable=1;
 	
-	//while(!(SU->TxComplated));
+	//while(SU->TxNComplated);
 	
 	return SoftUart_OK;
 }
