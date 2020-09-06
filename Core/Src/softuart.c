@@ -146,7 +146,7 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 		else if(SU->RxBitConter==9)
 		{
 			SU->RxBitConter=0;
-			if(1)//B0_1)//Stop Bit
+			if(B0_1)//Stop Bit
 			{
 				//OK
 				if((SU->RxIndex)<SoftUartRxBufferSize)(SU->RxIndex)++;

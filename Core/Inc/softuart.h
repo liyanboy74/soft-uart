@@ -38,7 +38,8 @@ typedef struct {
 	
 } SoftUart_S;
 
-//Call Every 104uS
+//Call Every 104.16666666uS or 9600Hz
+//But in real 104 us work Fine & Beter of 104.1666us!
 void SoftUartHandler(void);
 
 SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len);
