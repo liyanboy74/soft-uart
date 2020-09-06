@@ -88,22 +88,22 @@ void SoftUartTxProcess(SoftUart_S *SU)
 	}
 }
 
-SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len)
+SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len)
 {
 	int i;
 	
-	if(SU->TxNComplated) return SoftUart_Error;
+	if(SUart[SoftUartNumber].TxNComplated) return SoftUart_Error;
 	
-	SU->TxIndex=0;
-	SU->TxSize=Len;
+	SUart[SoftUartNumber].TxIndex=0;
+	SUart[SoftUartNumber].TxSize=Len;
 	
 	for(i=0;i<Len;i++)
 	{
-		SU->Buffer.TxBuffer[i]= Str[i];
+		SUart[SoftUartNumber].Buffer.TxBuffer[i]= Str[i];
 	}
 	
-	SU->TxNComplated=1;
-	SU->TxEnable=1;
+	SUart[SoftUartNumber].TxNComplated=1;
+	SUart[SoftUartNumber].TxEnable=1;
 	
 	//while(SU->TxNComplated);
 	

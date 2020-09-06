@@ -42,7 +42,7 @@ typedef struct {
 //But in real 104 us work Fine & Beter of 104.1666us!
 void SoftUartHandler(void);
 
-SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len);
+SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
 void SoftUartEnableRx(uint8_t SoftUartNumber);
 void SoftUartDisableRx(uint8_t SoftUartNumber);
 void SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin);
