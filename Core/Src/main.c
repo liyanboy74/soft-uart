@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "softuart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,235 +64,16 @@ static void MX_USART3_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-#define 							Number_Of_SoftUart		6
-
-#define								SoftUartTxBufferSize	32
-#define								SoftUartRxBufferSize	32
-
-typedef enum {
-	SoftUart_OK,
-	SoftUart_Error
-}SoftUartState_E;
-
-typedef struct{
-	uint8_t					TxBuffer[SoftUartTxBufferSize];
-	uint8_t					RxBuffer[SoftUartRxBufferSize];
-}SoftUartBuffer_S;
-
-typedef struct {
-	__IO uint8_t 			TxNComplated;
-	//__IO uint8_t 			RxNComplated;
-	
-	uint8_t						TxEnable;
-	uint8_t						RxEnable;
-	
-	uint8_t 					TxBitShift,TxBitConter;
-	uint8_t 					RxBitShift,RxBitConter;
-	
-	uint8_t						TxIndex,TxSize;
-	uint8_t						RxIndex;//,RxSize;
-	
-	SoftUartBuffer_S	Buffer;
-	
-	GPIO_TypeDef  		*TxPort;
-	uint16_t 					TxPin;
-	
-	GPIO_TypeDef  		*RxPort;
-	uint16_t 					RxPin;
-	
-} SoftUart_S;
-//
-
-void SoftUartInit(SoftUart_S *SU,SoftUartBuffer_S Buffer,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin)
-{
-	SU->TxNComplated=0;
-	
-	SU->RxBitConter=0;
-	SU->RxBitShift=0;
-	SU->RxIndex=0;
-
-	SU->TxEnable=0;
-	SU->RxEnable=0;
-	
-	SU->TxBitConter=0;
-	SU->TxBitShift=0;
-	SU->TxIndex=0;
-	
-	SU->TxSize=0;
-	
-	SU->Buffer=Buffer;
-	
-	SU->RxPort=RxPort;
-	SU->RxPin=RxPin;
-	
-	SU->TxPort=TxPort;
-	SU->TxPin=TxPin;
-}
-//
-
-uint8_t 							ScanPortBuffer;
-
-SoftUart_S 						SUart[Number_Of_SoftUart];
-SoftUartBuffer_S 			SUBuffer[Number_Of_SoftUart];
-
-void SoftUartTransmitBit(SoftUart_S *SU,uint8_t Bit0_1)
-{
-	HAL_GPIO_WritePin(SU->TxPort,SU->TxPin,(GPIO_PinState)Bit0_1);
-}
-//
-
-void SoftUartEnableRx(SoftUart_S *SU)
-{
-	SU->RxEnable=1;
-}
-//
-
-void SoftUartDisableRx(SoftUart_S *SU)
-{
-	SU->RxEnable=0;
-}
-//
-
-void SoftUartTxProcess(SoftUart_S *SU)
-{
-	if(SU->TxEnable)
-	{
-		if(SU->TxBitConter==0)
-		{
-			SU->TxNComplated=1;
-			SU->TxBitShift=0;
-			SoftUartTransmitBit(SU,0);
-			SU->TxBitConter++;
-		}
-		else if(SU->TxBitConter<9)
-		{
-			SoftUartTransmitBit(SU,((SU->Buffer.TxBuffer[SU->TxIndex])>>(SU->TxBitShift))&0x01);
-			SU->TxBitConter++;
-			SU->TxBitShift++;
-		}
-		else if(SU->TxBitConter==9)
-		{
-			SoftUartTransmitBit(SU,1);
-			SU->TxBitConter++;
-		}
-		else if(SU->TxBitConter==10)
-		{
-			//Complate
-			SU->TxBitConter=0;
-			
-			SU->TxIndex++;
-			if(SU->TxSize > SU->TxIndex)
-			{
-				SU->TxNComplated=1;
-				SU->TxEnable=1;
-			}
-			else
-			{
-				SU->TxNComplated=0;
-				SU->TxEnable=0;
-			}
-		}
-	}
-}
-//
-
-SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len)
-{
-	int i;
-	
-	if(SU->TxNComplated) return SoftUart_Error;
-	
-	SU->TxIndex=0;
-	SU->TxSize=Len;
-	
-	for(i=0;i<Len;i++)
-	{
-		SU->Buffer.TxBuffer[i]= Str[i];
-	}
-	
-	SU->TxNComplated=1;
-	SU->TxEnable=1;
-	
-	//while(SU->TxNComplated);
-	
-	return SoftUart_OK;
-}
-//
-
-uint8_t SoftUartScanRxPorts(void)
-{
-	int i;
-	uint8_t Buffer=0x00;
-	for(i=0;i<Number_Of_SoftUart;i++) 
-	{
-		Buffer|=((HAL_GPIO_ReadPin(SUart[i].RxPort,SUart[i].RxPin)&0x01)<<i);
-	}
-	return Buffer;
-}
-//
-
-uint8_t SoftUartRxGetBit(uint8_t InputChannel)
-{
-	return ((ScanPortBuffer>>InputChannel)&0x01);
-}
-//
-
-void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
-{
-	if(SU->RxEnable)
-	{
-		if(SU->RxBitConter==0)//Start
-		{
-			if(B0_1)return;
-			SU->RxBitShift=0;
-			SU->RxBitConter++;
-			SU->Buffer.RxBuffer[SU->RxIndex]=0;
-		}
-		else if(SU->RxBitConter<9)//Data
-		{
-			SU->Buffer.RxBuffer[SU->RxIndex]|=((B0_1&0x01)<<SU->RxBitShift);
-			SU->RxBitConter++;
-			SU->RxBitShift++;
-		}
-		else if(SU->RxBitConter==9)
-		{
-			SU->RxBitConter=0;
-			if(B0_1)//Stop Bit
-			{
-				//OK
-				if((SU->RxIndex)<SoftUartRxBufferSize)(SU->RxIndex)++;
-			}
-		}
-	}
-}
-//
-
-void SoftUartProcessRxBuffer(void)
-{
-	int i;
-	for(i=0;i<Number_Of_SoftUart;i++) SoftUartRxDataBitProcess(&SUart[i],SoftUartRxGetBit(i));
-}
-//
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance==TIM2)
 	{
-		int i;
-		
-		//RX
-		ScanPortBuffer=SoftUartScanRxPorts();//Sampeling
-		SoftUartProcessRxBuffer();
-		
-		//TX
-		for(i=0;i<Number_Of_SoftUart;i++)//Transfer Data
-		{
-			SoftUartTxProcess(&SUart[i]);
-		}
+		SoftUartHandler();
 	}
 
 }
 //
+
 /* USER CODE END 0 */
 
 /**
@@ -329,23 +110,21 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 		
-	SoftUartInit(&SUart[0],SUBuffer[0],GPIOB,GPIO_PIN_3,GPIOA,GPIO_PIN_4);
-	SoftUartInit(&SUart[1],SUBuffer[1],GPIOB,GPIO_PIN_4,GPIOA,GPIO_PIN_5);
-	SoftUartInit(&SUart[2],SUBuffer[2],GPIOB,GPIO_PIN_5,GPIOA,GPIO_PIN_6);
-	SoftUartInit(&SUart[3],SUBuffer[3],GPIOB,GPIO_PIN_6,GPIOA,GPIO_PIN_7);
-	SoftUartInit(&SUart[4],SUBuffer[4],GPIOB,GPIO_PIN_7,GPIOB,GPIO_PIN_0);
-	SoftUartInit(&SUart[5],SUBuffer[5],GPIOB,GPIO_PIN_8,GPIOB,GPIO_PIN_1);
+	SoftUartInit(0,GPIOB,GPIO_PIN_3,GPIOA,GPIO_PIN_4);
+	SoftUartInit(1,GPIOB,GPIO_PIN_4,GPIOA,GPIO_PIN_5);
+	SoftUartInit(2,GPIOB,GPIO_PIN_5,GPIOA,GPIO_PIN_6);
+	SoftUartInit(3,GPIOB,GPIO_PIN_6,GPIOA,GPIO_PIN_7);
+	SoftUartInit(4,GPIOB,GPIO_PIN_7,GPIOB,GPIO_PIN_0);
+	SoftUartInit(5,GPIOB,GPIO_PIN_8,GPIOB,GPIO_PIN_1);
 	
-	SoftUartEnableRx(&SUart[0]);
-	SoftUartEnableRx(&SUart[1]);
-	SoftUartEnableRx(&SUart[2]);
-	SoftUartEnableRx(&SUart[3]);
-	SoftUartEnableRx(&SUart[4]);
-	SoftUartEnableRx(&SUart[5]);
+	SoftUartEnableRx(0);
+	SoftUartEnableRx(1);
+	SoftUartEnableRx(2);
+	SoftUartEnableRx(3);
+	SoftUartEnableRx(4);
+	SoftUartEnableRx(5);
 	
 	HAL_TIM_Base_Start_IT(&htim2);
-	
-	HAL_Delay(10);
 	
   /* USER CODE END 2 */
 
