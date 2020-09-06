@@ -41,8 +41,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -56,11 +54,9 @@ UART_HandleTypeDef huart3;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
-static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -72,10 +68,6 @@ static void MX_TIM4_Init(void);
 
 #define								SoftUartTxBufferSize	32
 #define								SoftUartRxBufferSize	32
-
-#define								RxSampleRate					5
-#define								ScanPortBufferSize		10
-
 
 typedef enum {
 	SoftUart_OK,
@@ -114,21 +106,19 @@ typedef struct {
 void SoftUartInit(SoftUart_S *SU,SoftUartBuffer_S Buffer,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin)
 {
 	SU->TxNComplated=0;
-	//SU->RxNComplated=0;
 	
 	SU->RxBitConter=0;
 	SU->RxBitShift=0;
 	SU->RxIndex=0;
 
 	SU->TxEnable=0;
-	SU->RxEnable=1;
+	SU->RxEnable=0;
 	
 	SU->TxBitConter=0;
 	SU->TxBitShift=0;
 	SU->TxIndex=0;
 	
 	SU->TxSize=0;
-	//SU->RxSize=0;
 	
 	SU->Buffer=Buffer;
 	
@@ -139,8 +129,8 @@ void SoftUartInit(SoftUart_S *SU,SoftUartBuffer_S Buffer,GPIO_TypeDef *TxPort,ui
 	SU->TxPin=TxPin;
 }
 //
-__IO uint8_t 					RXDataReadyToProcess=0;
-uint8_t 							ScanPortBuffer[ScanPortBufferSize];
+
+uint8_t 							ScanPortBuffer;
 
 SoftUart_S 						SUart[Number_Of_SoftUart];
 SoftUartBuffer_S 			SUBuffer[Number_Of_SoftUart];
@@ -148,6 +138,18 @@ SoftUartBuffer_S 			SUBuffer[Number_Of_SoftUart];
 void SoftUartTransmitBit(SoftUart_S *SU,uint8_t Bit0_1)
 {
 	HAL_GPIO_WritePin(SU->TxPort,SU->TxPin,(GPIO_PinState)Bit0_1);
+}
+//
+
+void SoftUartEnableRx(SoftUart_S *SU)
+{
+	SU->RxEnable=1;
+}
+//
+
+void SoftUartDisableRx(SoftUart_S *SU)
+{
+	SU->RxEnable=0;
 }
 //
 
@@ -217,17 +219,6 @@ SoftUartState_E SoftUart_Puts(SoftUart_S *SU,uint8_t *Str,uint8_t Len)
 }
 //
 
-void SoftUartInsertRxDataToBuffer(uint8_t Ch)
-{
-	int i;
-	
-	//Shift Buffer
-	for(i=0;i<(ScanPortBufferSize-1);i++)ScanPortBuffer[i+1]=ScanPortBuffer[i];
-	
-	//Add to Buffer
-	ScanPortBuffer[0]=Ch;
-}
-
 uint8_t SoftUartScanRxPorts(void)
 {
 	int i;
@@ -240,63 +231,9 @@ uint8_t SoftUartScanRxPorts(void)
 }
 //
 
-void SoftUartRxDataReadyToProcess(uint8_t Set_Reset)
-{
-	if(Set_Reset)
-	{
-		RXDataReadyToProcess=1;
-	}
-	else
-	{
-		RXDataReadyToProcess=0;
-	}
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim->Instance==TIM2)
-	{
-		int i;
-		for(i=0;i<Number_Of_SoftUart;i++)//Transfer Data
-		{
-			SoftUartTxProcess(&SUart[i]);
-		}
-	}
-	else if(htim->Instance==TIM3)//Sampeling
-	{
-		SoftUartInsertRxDataToBuffer(SoftUartScanRxPorts());
-	}
-	else if(htim->Instance==TIM4)//Ready To Read Data
-	{
-		SoftUartRxDataReadyToProcess(1);
-	}
-}
-//
-
-uint8_t SoftUartRxGetBitAv(uint8_t * Buffer ,uint8_t BitAddress,uint8_t Len,uint8_t Index)
-{
-	int i,sum=0;
-	float av;
-	
-	for(i=(0+Index);i<(Len+Index);i++)
-	{
-		sum+=((Buffer[i]>>BitAddress)&0x01);
-	}
-	
-	av=(float)sum/(float)Len;
-	
-				if(av>=0.7)return 1;
-	else 	if(av<=0.3)return 0;
-	else
-	{
-		return SoftUartRxGetBitAv(Buffer,BitAddress,Len,Index+1);
-	}
-}
-//
-
 uint8_t SoftUartRxGetBit(uint8_t InputChannel)
 {
-	return SoftUartRxGetBitAv(ScanPortBuffer,InputChannel,RxSampleRate,0);
+	return ((ScanPortBuffer>>InputChannel)&0x01);
 }
 //
 
@@ -320,7 +257,6 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 		else if(SU->RxBitConter==9)
 		{
 			SU->RxBitConter=0;
-			
 			if(B0_1)//Stop Bit
 			{
 				//OK
@@ -334,15 +270,29 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 void SoftUartProcessRxBuffer(void)
 {
 	int i;
-	
-	if(!RXDataReadyToProcess)return;
-	SoftUartRxDataReadyToProcess(0);
-	
 	for(i=0;i<Number_Of_SoftUart;i++) SoftUartRxDataBitProcess(&SUart[i],SoftUartRxGetBit(i));
-	
 }
 //
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance==TIM2)
+	{
+		int i;
+		
+		//RX
+		ScanPortBuffer=SoftUartScanRxPorts();//Sampeling
+		SoftUartProcessRxBuffer();
+		
+		//TX
+		for(i=0;i<Number_Of_SoftUart;i++)//Transfer Data
+		{
+			SoftUartTxProcess(&SUart[i]);
+		}
+	}
+
+}
+//
 /* USER CODE END 0 */
 
 /**
@@ -374,11 +324,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 		
 	SoftUartInit(&SUart[0],SUBuffer[0],GPIOB,GPIO_PIN_3,GPIOA,GPIO_PIN_4);
@@ -388,9 +336,14 @@ int main(void)
 	SoftUartInit(&SUart[4],SUBuffer[4],GPIOB,GPIO_PIN_7,GPIOB,GPIO_PIN_0);
 	SoftUartInit(&SUart[5],SUBuffer[5],GPIOB,GPIO_PIN_8,GPIOB,GPIO_PIN_1);
 	
-	//HAL_TIM_Base_Start_IT(&htim2);
-	HAL_TIM_Base_Start_IT(&htim3);
-	HAL_TIM_Base_Start_IT(&htim4);
+	SoftUartEnableRx(&SUart[0]);
+	SoftUartEnableRx(&SUart[1]);
+	SoftUartEnableRx(&SUart[2]);
+	SoftUartEnableRx(&SUart[3]);
+	SoftUartEnableRx(&SUart[4]);
+	SoftUartEnableRx(&SUart[5]);
+	
+	HAL_TIM_Base_Start_IT(&htim2);
 	
 	HAL_Delay(10);
 	
@@ -400,19 +353,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		//SoftUart_Putchar(&SUart1,0x41);
-		//SoftUart_Putchar(&SUart2,0x42);
-		
-		//	SoftUart_Puts(&SUart1,(uint8_t*)"Hello",5);
-		//	SoftUart_Puts(&SUart2,(uint8_t*)"My",2);
-		//	SoftUart_Puts(&SUart3,(uint8_t*)"Name",4);
-		//	SoftUart_Puts(&SUart4,(uint8_t*)"Is",2);
-		//	SoftUart_Puts(&SUart5,(uint8_t*)"Esmaeill",8);
-		//	SoftUart_Puts(&SUart6,(uint8_t*)"Maarfavi",8);
-		
-		SoftUartProcessRxBuffer();
-		
-		//HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -500,96 +440,6 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM3_Init(void)
-{
-
-  /* USER CODE BEGIN TIM3_Init 0 */
-
-  /* USER CODE END TIM3_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM3_Init 1 */
-
-  /* USER CODE END TIM3_Init 1 */
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 29;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 49;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM3_Init 2 */
-
-  /* USER CODE END TIM3_Init 2 */
-
-}
-
-/**
-  * @brief TIM4 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM4_Init(void)
-{
-
-  /* USER CODE BEGIN TIM4_Init 0 */
-
-  /* USER CODE END TIM4_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM4_Init 1 */
-
-  /* USER CODE END TIM4_Init 1 */
-  htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 71;
-  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 103;
-  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM4_Init 2 */
-
-  /* USER CODE END TIM4_Init 2 */
 
 }
 
