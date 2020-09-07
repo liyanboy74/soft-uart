@@ -1,6 +1,6 @@
 #include "main.h"
 
-#define 							Number_Of_SoftUart		6
+#define 							Number_Of_SoftUarts		6
 
 #define								SoftUartTxBufferSize	32
 #define								SoftUartRxBufferSize	64
@@ -11,8 +11,8 @@ typedef enum {
 }SoftUartState_E;
 
 typedef struct{
-	uint8_t					TxBuffer[SoftUartTxBufferSize];
-	uint8_t					RxBuffer[SoftUartRxBufferSize];
+	uint8_t					Tx[SoftUartTxBufferSize];
+	uint8_t					Rx[SoftUartRxBufferSize];
 }SoftUartBuffer_S;
 
 typedef struct {
@@ -40,9 +40,12 @@ typedef struct {
 
 //Call Every 104.16666666uS or 9600Hz
 //But in real 104 us work Fine & Beter of 104.1666us!
-void SoftUartHandler(void);
+void 						SoftUartHandler(void);
 
+void 						SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
+uint8_t 				SoftUartRxAlavailable(uint8_t SoftUartNumber);
 SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
-void SoftUartEnableRx(uint8_t SoftUartNumber);
-void SoftUartDisableRx(uint8_t SoftUartNumber);
-void SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin);
+SoftUartState_E SoftUartEnableRx(uint8_t SoftUartNumber);
+SoftUartState_E SoftUartDisableRx(uint8_t SoftUartNumber);
+SoftUartState_E SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin);
+SoftUartState_E SoftUartReadRxBuffer(uint8_t SoftUartNumber,uint8_t *Buffer,uint8_t Len);

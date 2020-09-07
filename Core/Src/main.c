@@ -72,6 +72,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 
 }
+
+uint8_t TempBuffer[32];
 //
 
 /* USER CODE END 0 */
@@ -134,6 +136,18 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+		if(SoftUartRxAlavailable(0))
+		{
+			SoftUartReadRxBuffer(0,TempBuffer,SoftUartRxAlavailable(0));
+		}
+		
+		SoftUartPuts(0,(uint8_t *)"Hello\r\n",7);
+		SoftUartWaitUntilTxComplate(0);
+		
+		SoftUartPuts(1,(uint8_t *)"Esmaeill\r\n",10);
+		SoftUartWaitUntilTxComplate(1);
+		
+		HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
