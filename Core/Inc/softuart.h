@@ -28,7 +28,7 @@ typedef struct {
 	uint8_t						TxIndex,TxSize;
 	uint8_t						RxIndex;//,RxSize;
 	
-	SoftUartBuffer_S	Buffer;
+	SoftUartBuffer_S	*Buffer;
 	
 	GPIO_TypeDef  		*TxPort;
 	uint16_t 					TxPin;

@@ -34,7 +34,7 @@ SoftUartState_E SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_
 	
 	SUart[SoftUartNumber].TxSize=0;
 	
-	SUart[SoftUartNumber].Buffer=SUBuffer[SoftUartNumber];
+	SUart[SoftUartNumber].Buffer=&SUBuffer[SoftUartNumber];
 	
 	SUart[SoftUartNumber].RxPort=RxPort;
 	SUart[SoftUartNumber].RxPin=RxPin;
@@ -75,11 +75,11 @@ SoftUartState_E SoftUartReadRxBuffer(uint8_t SoftUartNumber,uint8_t *Buffer,uint
 	if(SoftUartNumber>=Number_Of_SoftUarts)return SoftUart_Error;
 	for(i=0;i<Len;i++)
 	{
-		Buffer[i]=SUart[SoftUartNumber].Buffer.Rx[i];
+		Buffer[i]=SUart[SoftUartNumber].Buffer->Rx[i];
 	}
 	for(i=0;i<SUart[SoftUartNumber].RxIndex;i++)
 	{
-		SUart[SoftUartNumber].Buffer.Rx[i]=SUart[SoftUartNumber].Buffer.Rx[i+Len];
+		SUart[SoftUartNumber].Buffer->Rx[i]=SUart[SoftUartNumber].Buffer->Rx[i+Len];
 	}
 	SUart[SoftUartNumber].RxIndex-=Len;
 	return SoftUart_OK;
@@ -98,7 +98,7 @@ void SoftUartTxProcess(SoftUart_S *SU)
 		}
 		else if(SU->TxBitConter<9)
 		{
-			SoftUartTransmitBit(SU,((SU->Buffer.Tx[SU->TxIndex])>>(SU->TxBitShift))&0x01);
+			SoftUartTransmitBit(SU,((SU->Buffer->Tx[SU->TxIndex])>>(SU->TxBitShift))&0x01);
 			SU->TxBitConter++;
 			SU->TxBitShift++;
 		}
@@ -136,11 +136,11 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 			if(B0_1)return;
 			SU->RxBitShift=0;
 			SU->RxBitConter++;
-			SU->Buffer.Rx[SU->RxIndex]=0;
+			SU->Buffer->Rx[SU->RxIndex]=0;
 		}
 		else if(SU->RxBitConter<9)//Data
 		{
-			SU->Buffer.Rx[SU->RxIndex]|=((B0_1&0x01)<<SU->RxBitShift);
+			SU->Buffer->Rx[SU->RxIndex]|=((B0_1&0x01)<<SU->RxBitShift);
 			SU->RxBitConter++;
 			SU->RxBitShift++;
 		}
@@ -172,7 +172,7 @@ SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len)
 	
 	for(i=0;i<Len;i++)
 	{
-		SUart[SoftUartNumber].Buffer.Tx[i]= Str[i];
+		SUart[SoftUartNumber].Buffer->Tx[i]= Str[i];
 	}
 	
 	SUart[SoftUartNumber].TxNComplated=1;
