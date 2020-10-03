@@ -36,10 +36,12 @@ typedef struct {
 	GPIO_TypeDef  		*RxPort;
 	uint16_t 					RxPin;
 	
+	uint8_t 					RxTimingFlag;
+	uint8_t 					RxBitOffset;
+	
 } SoftUart_S;
 
-//Call Every 104.16666666uS or 9600Hz
-//But in real 104 us work Fine & Beter of 104.1666us!
+//Call Every (0.2)*(1/9600) = 20.83 uS
 void 						SoftUartHandler(void);
 
 void 						SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);

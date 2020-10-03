@@ -32,6 +32,15 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance==TIM2)
+	{
+		SoftUartHandler();
+	}
+}
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -64,15 +73,6 @@ static void MX_USART3_UART_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim->Instance==TIM2)
-	{
-		SoftUartHandler();
-	}
-
-}
-
 uint8_t TempBuffer[32];
 //
 
@@ -85,7 +85,7 @@ uint8_t TempBuffer[32];
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	uint8_t Len;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -138,16 +138,16 @@ int main(void)
   {
 		if(SoftUartRxAlavailable(0))
 		{
-			SoftUartReadRxBuffer(0,TempBuffer,SoftUartRxAlavailable(0));
+			HAL_Delay(100);
+			Len=SoftUartRxAlavailable(0);
+			
+			SoftUartReadRxBuffer(0,TempBuffer,Len);
+			SoftUartPuts(0,(uint8_t *)TempBuffer,Len);
+			SoftUartWaitUntilTxComplate(0);
+			
+			HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
 		}
 		
-		SoftUartPuts(0,(uint8_t *)"Hello\r\n",7);
-		SoftUartWaitUntilTxComplate(0);
-		
-		SoftUartPuts(1,(uint8_t *)"Esmaeill\r\n",10);
-		SoftUartWaitUntilTxComplate(1);
-		
-		HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -212,9 +212,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 71;
+  htim2.Init.Prescaler = 74;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 103;
+  htim2.Init.Period = 19;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)

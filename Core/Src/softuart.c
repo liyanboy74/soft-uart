@@ -1,9 +1,10 @@
 #include "softuart.h"
 
-static uint8_t 							ScanPortBuffer;
+SoftUart_S 						SUart				[Number_Of_SoftUarts];
+SoftUartBuffer_S 			SUBuffer		[Number_Of_SoftUarts];
 
-SoftUart_S 						SUart[Number_Of_SoftUarts];
-SoftUartBuffer_S 			SUBuffer[Number_Of_SoftUarts];
+__IO  uint8_t 				SU_Timer=0;
+uint8_t 							SU_DBaffer;
 
 GPIO_PinState SoftUartGpioReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 {
@@ -41,6 +42,9 @@ SoftUartState_E SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_
 	
 	SUart[SoftUartNumber].TxPort=TxPort;
 	SUart[SoftUartNumber].TxPin=TxPin;
+	
+	SUart[SoftUartNumber].RxTimingFlag=0;
+	SUart[SoftUartNumber].RxBitOffset=0;
 	
 	return SoftUart_OK;
 }
@@ -147,6 +151,7 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 		else if(SU->RxBitConter==9)
 		{
 			SU->RxBitConter=0;
+			SU->RxTimingFlag=0;
 			if(B0_1)//Stop Bit
 			{
 				//OK
@@ -184,36 +189,45 @@ SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len)
 uint8_t SoftUartScanRxPorts(void)
 {
 	int i;
-	uint8_t Buffer=0x00;
+	uint8_t Buffer=0x00,Bit;
 	for(i=0;i<Number_Of_SoftUarts;i++) 
 	{
-		Buffer|=((SoftUartGpioReadPin(SUart[i].RxPort,SUart[i].RxPin)&0x01)<<i);
+		Bit=SoftUartGpioReadPin(SUart[i].RxPort,SUart[i].RxPin);
+		if(!SUart[i].RxBitConter && !SUart[i].RxTimingFlag && !Bit)
+		{
+			SUart[i].RxBitOffset=((SU_Timer+2)%5);
+			SUart[i].RxTimingFlag=1;	
+		}
+		Buffer|=((Bit&0x01)<<i);
 	}
 	return Buffer;
 }
 
-uint8_t SoftUartRxGetBit(uint8_t InputChannel)
-{
-	return ((ScanPortBuffer>>InputChannel)&0x01);
-}
-
-void SoftUartProcessRxBuffer(void)
-{
-	int i;
-	for(i=0;i<Number_Of_SoftUarts;i++) SoftUartRxDataBitProcess(&SUart[i],SoftUartRxGetBit(i));
-}
 
 void SoftUartHandler(void)
 {
 	int i;
 	
 	//RX
-	ScanPortBuffer=SoftUartScanRxPorts();//Sampeling
-	SoftUartProcessRxBuffer();
+	SU_DBaffer=SoftUartScanRxPorts();
 	
-	//TX
-	for(i=0;i<Number_Of_SoftUarts;i++)//Transfer Data
+	for(i=0;i<Number_Of_SoftUarts;i++)
 	{
-		SoftUartTxProcess(&SUart[i]);
+		if(SUart[i].RxBitOffset==SU_Timer)
+		{
+			SoftUartRxDataBitProcess(&SUart[i],((SU_DBaffer>>i)&0x01));
+		}
 	}
+	
+	if(SU_Timer==0)
+	{
+		//TX
+		for(i=0;i<Number_Of_SoftUarts;i++)//Transfer Data
+		{
+			SoftUartTxProcess(&SUart[i]);
+		}
+	}
+
+	SU_Timer++;
+	if(SU_Timer>=5)SU_Timer=0;
 }
