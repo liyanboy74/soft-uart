@@ -7,11 +7,8 @@ All UART work together parallelly!
 
 ### Library Dir:
 
-```
-.\Core\inc\softuart.h
-.\Core\Src\softuart.c
-```
-
+* [Softuart.h](./Core/Inc/softuart.h)
+* [Softuart.c](./Core/Src/softuart.c)
 
 
 ### Handler & baud rate
