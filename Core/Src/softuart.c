@@ -1,3 +1,9 @@
+/*
+ Softwer Uart For Stm32
+ By Liyanboy74
+ https://github.com/liyanboy74
+*/
+
 #include "softuart.h"
 
 SoftUart_S 						SUart				[Number_Of_SoftUarts];
