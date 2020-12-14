@@ -1,6 +1,12 @@
+/*
+ Softwer Uart For Stm32
+ By Liyanboy74
+ https://github.com/liyanboy74
+*/
+
 #include "main.h"
 
-#define 							Number_Of_SoftUarts		6
+#define 							Number_Of_SoftUarts	6
 
 #define								SoftUartTxBufferSize	32
 #define								SoftUartRxBufferSize	64
