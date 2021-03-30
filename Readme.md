@@ -57,9 +57,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 Open `softuart.h` and edit bellow line as you want:
 
 ```c
-#define 			Number_Of_SoftUarts		6
-#define				SoftUartTxBufferSize	32
-#define				SoftUartRxBufferSize	64
+#define 	Number_Of_SoftUarts	 6
+#define		SoftUartTxBufferSize	32
+#define		SoftUartRxBufferSize	64
 ```
 
 If `Number_Of_SoftUarts=6` that mean you `SoftUartNumber` is `0,1,2,3,4,5` 
