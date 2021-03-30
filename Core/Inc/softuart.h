@@ -17,33 +17,26 @@ typedef enum {
 }SoftUartState_E;
 
 typedef struct{
-	uint8_t					Tx[SoftUartTxBufferSize];
-	uint8_t					Rx[SoftUartRxBufferSize];
+	uint8_t			Tx[SoftUartTxBufferSize];
+	uint8_t			Rx[SoftUartRxBufferSize];
 }SoftUartBuffer_S;
 
 typedef struct {
-	__IO uint8_t 			TxNComplated;
-	//__IO uint8_t 			RxNComplated;
-	
-	uint8_t						TxEnable;
-	uint8_t						RxEnable;
-	
-	uint8_t 					TxBitShift,TxBitConter;
-	uint8_t 					RxBitShift,RxBitConter;
-	
-	uint8_t						TxIndex,TxSize;
-	uint8_t						RxIndex;//,RxSize;
-	
+	__IO uint8_t 		TxNComplated;
+	//__IO uint8_t 		RxNComplated;
+	uint8_t			TxEnable;
+	uint8_t			RxEnable;
+	uint8_t 		TxBitShift,TxBitConter;
+	uint8_t 		RxBitShift,RxBitConter;
+	uint8_t			TxIndex,TxSize;
+	uint8_t			RxIndex;//,RxSize;
 	SoftUartBuffer_S	*Buffer;
-	
 	GPIO_TypeDef  		*TxPort;
-	uint16_t 					TxPin;
-	
+	uint16_t 		TxPin;
 	GPIO_TypeDef  		*RxPort;
-	uint16_t 					RxPin;
-	
-	uint8_t 					RxTimingFlag;
-	uint8_t 					RxBitOffset;
+	uint16_t 		RxPin;
+	uint8_t 		RxTimingFlag;
+	uint8_t 		RxBitOffset;
 	
 } SoftUart_S;
 
