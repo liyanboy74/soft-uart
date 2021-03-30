@@ -6,10 +6,10 @@
 
 #include "main.h"
 
-#define 							Number_Of_SoftUarts	6
+#define 	Number_Of_SoftUarts	6
 
-#define								SoftUartTxBufferSize	32
-#define								SoftUartRxBufferSize	64
+#define		SoftUartTxBufferSize	32
+#define		SoftUartRxBufferSize	64
 
 typedef enum {
 	SoftUart_OK,
@@ -48,10 +48,10 @@ typedef struct {
 } SoftUart_S;
 
 //Call Every (0.2)*(1/9600) = 20.83 uS
-void 						SoftUartHandler(void);
+void 		SoftUartHandler(void);
 
-void 						SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
-uint8_t 				SoftUartRxAlavailable(uint8_t SoftUartNumber);
+void 		SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
+uint8_t 	SoftUartRxAlavailable(uint8_t SoftUartNumber);
 SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
 SoftUartState_E SoftUartEnableRx(uint8_t SoftUartNumber);
 SoftUartState_E SoftUartDisableRx(uint8_t SoftUartNumber);
