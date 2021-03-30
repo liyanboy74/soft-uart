@@ -83,7 +83,7 @@ SoftUartState_E SoftUartEnableRx(uint8_t SoftUartNumber);
 Received data stored in buffer accessible by below functions:
 
 ```c
-uint8_t 		SoftUartRxAlavailable(uint8_t SoftUartNumber);
+uint8_t 	SoftUartRxAlavailable(uint8_t SoftUartNumber);
 SoftUartState_E SoftUartReadRxBuffer(uint8_t SoftUartNumber,uint8_t *Buffer,uint8_t Len);
 ```
 
@@ -91,7 +91,7 @@ Transmit data:
 
 ```c
 SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
-void 			SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
+void 		SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
 ```
 
 
