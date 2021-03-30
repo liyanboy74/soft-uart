@@ -6,11 +6,11 @@
 
 #include "softuart.h"
 
-SoftUart_S 						SUart				[Number_Of_SoftUarts];
-SoftUartBuffer_S 			SUBuffer		[Number_Of_SoftUarts];
+SoftUart_S		SUart	[Number_Of_SoftUarts];
+SoftUartBuffer_S 	SUBuffer[Number_Of_SoftUarts];
 
-__IO  uint8_t 				SU_Timer=0;
-uint8_t 							SU_DBaffer;
+__IO  uint8_t 		SU_Timer=0;
+uint8_t 		SU_DBaffer;
 
 GPIO_PinState SoftUartGpioReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 {
