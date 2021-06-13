@@ -1,4 +1,4 @@
-# Soft UART For STM32
+# Multi Software Serial (UART) For STM32
 
 In this example we virtualize 6 UART full duplex in baud rate 9600.
 All UART work together parallelly!
