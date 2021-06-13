@@ -94,3 +94,19 @@ SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
 void 		SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
 ```
 
+
+### Example test:
+
+```c
+while(1)
+{
+	SoftUartPuts(0,(uint8_t *)"Hello",5);
+	SoftUartPuts(1,(uint8_t *)"My",2);
+	SoftUartPuts(2,(uint8_t *)"Name",4);
+	SoftUartPuts(3,(uint8_t *)"Is",2);
+	SoftUartPuts(4,(uint8_t *)"Esmaeill",8);
+	SoftUartPuts(5,(uint8_t *)"Maarfavi",8);
+}
+```
+![LogicAnalizer](https://user-images.githubusercontent.com/64005694/121798942-836e1380-cc3e-11eb-96bd-faa72cd72c03.jpg)
+
