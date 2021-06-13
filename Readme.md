@@ -1,14 +1,14 @@
 # Multi Software Serial (UART) For STM32
 
-In this example we virtualize 6 UART full duplex in baud rate 9600.
+The library work fine for virtualize 6 UART full duplex in baud rate 9600.
 All UART work together parallelly!
 
 
 
 ### Library Dir:
 
-* [Softuart.h](./Core/Inc/softuart.h)
-* [Softuart.c](./Core/Src/softuart.c)
+* [Softuart.h](./softuart.h)
+* [Softuart.c](./softuart.c)
 
 
 ### Handler & baud rate
@@ -64,7 +64,7 @@ Open `softuart.h` and edit bellow line as you want:
 
 If `Number_Of_SoftUarts=6` that mean you `SoftUartNumber` is `0,1,2,3,4,5` 
 
-after config timer for config Soft UART use `SoftUartInit`:
+After config timer for config Soft UART use `SoftUartInit`:
 
 ```c
 SoftUartState_E SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin);
@@ -93,5 +93,4 @@ Transmit data:
 SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
 void 		SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
 ```
-
 
