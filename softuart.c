@@ -1,5 +1,5 @@
 /*
- Softwer Uart For Stm32
+ Software Uart For Stm32
  By Liyanboy74
  https://github.com/liyanboy74
 */

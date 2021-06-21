@@ -96,7 +96,7 @@ void 		SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
 
 
 ### Example test:
-
+#### Transmit
 ```c
 while(1)
 {
@@ -109,4 +109,37 @@ while(1)
 }
 ```
 ![LogicAnalizer](https://user-images.githubusercontent.com/64005694/121798942-836e1380-cc3e-11eb-96bd-faa72cd72c03.jpg)
+
+#### Receive
+**Example 1:**
+
+```c
+uint8_t Buffer[SIZE],Len;
+
+while(1)
+{
+	// Read Received Data Len
+	if(Len=SoftUartRxAlavailable(0),Len)
+	{
+		// Move Received Data To Another Buffer
+		if(SoftUartReadRxBuffer(0,Buffer,Len)==SoftUart_OK)
+		{
+			// Done
+		}
+	}
+}
+```
+**Example 2:**
+
+```c
+uint8_t getchar(uint8_t SoftUartNumber)
+{
+    uint8_t ch;
+    while(SoftUartRxAlavailable(SoftUartNumber)==0);
+    SoftUartReadRxBuffer(SoftUartNumber,&ch,1);
+    return ch;
+}
+```
+
+
 
