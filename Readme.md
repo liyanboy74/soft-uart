@@ -118,8 +118,8 @@ uint8_t Buffer[SIZE],Len;
 
 while(1)
 {
-	// Read Received Data Len
-	if(Len=SoftUartRxAlavailable(0),Len)
+	// Read >= 10 Byte Data if Received
+	if(Len=SoftUartRxAlavailable(0),Len>=10)
 	{
 		// Move Received Data To Another Buffer
 		if(SoftUartReadRxBuffer(0,Buffer,Len)==SoftUart_OK)
