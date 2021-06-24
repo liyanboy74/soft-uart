@@ -25,8 +25,8 @@ typedef struct {
 	__IO uint8_t 		TxNComplated;
 	uint8_t			TxEnable;
 	uint8_t			RxEnable;
-	uint8_t 		TxBitShift,TxBitConter;
-	uint8_t 		RxBitShift,RxBitConter;
+	uint8_t 		TxBitShift,TxBitCounter;
+	uint8_t 		RxBitShift,RxBitCounter;
 	uint8_t			TxIndex,TxSize;
 	uint8_t			RxIndex;
 	SoftUartBuffer_S	*Buffer;
