@@ -6,11 +6,10 @@
 
 #include "softuart.h"
 
-SoftUart_S		SUart	[Number_Of_SoftUarts];
+SoftUart_S       	SUart   [Number_Of_SoftUarts];
 SoftUartBuffer_S 	SUBuffer[Number_Of_SoftUarts];
 
 __IO  uint8_t 		SU_Timer=0;
-uint8_t 		SU_DBaffer;
 
 GPIO_PinState SoftUartGpioReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 {
@@ -212,16 +211,17 @@ uint8_t SoftUartScanRxPorts(void)
 
 void SoftUartHandler(void)
 {
-	int i;
+	int     	i;
+	uint8_t 	SU_DBuffer;
 	
 	//RX
-	SU_DBaffer=SoftUartScanRxPorts();
+	SU_DBuffer=SoftUartScanRxPorts();
 	
 	for(i=0;i<Number_Of_SoftUarts;i++)
 	{
 		if(SUart[i].RxBitOffset==SU_Timer)
 		{
-			SoftUartRxDataBitProcess(&SUart[i],((SU_DBaffer>>i)&0x01));
+			SoftUartRxDataBitProcess(&SUart[i],((SU_DBuffer>>i)&0x01));
 		}
 	}
 	

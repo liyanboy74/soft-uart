@@ -6,10 +6,10 @@
 
 #include "main.h"
 
-#define 	Number_Of_SoftUarts	6
+#define 	Number_Of_SoftUarts 	6 	// Max 8
 
-#define		SoftUartTxBufferSize	32
-#define		SoftUartRxBufferSize	64
+#define 	SoftUartTxBufferSize	32
+#define 	SoftUartRxBufferSize	64
 
 typedef enum {
 	SoftUart_OK,
@@ -23,13 +23,12 @@ typedef struct{
 
 typedef struct {
 	__IO uint8_t 		TxNComplated;
-	//__IO uint8_t 		RxNComplated;
 	uint8_t			TxEnable;
 	uint8_t			RxEnable;
 	uint8_t 		TxBitShift,TxBitConter;
 	uint8_t 		RxBitShift,RxBitConter;
 	uint8_t			TxIndex,TxSize;
-	uint8_t			RxIndex;//,RxSize;
+	uint8_t			RxIndex;
 	SoftUartBuffer_S	*Buffer;
 	GPIO_TypeDef  		*TxPort;
 	uint16_t 		TxPin;
