@@ -158,6 +158,7 @@ void SoftUartTxProcess(SoftUart_S *SU)
 	}
 }
 
+// Soft Uart Receive Data Process
 void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 {
 	if(SU->RxEnable)
@@ -266,13 +267,14 @@ void SoftUartHandler(void)
 	
 	for(i=0;i < Number_Of_SoftUarts;i++)
 	{
-		// Receive Data
+		// Receive Data if we in middle data pulse position
 		if(SUart[i].RxBitOffset == SU_Timer)
 		{
 			SoftUartRxDataBitProcess(&SUart[i],((SU_DBuffer>>i)&0x01));
 		}
 	}
 	
+	// Sending always happens in the first time slot 
 	if(SU_Timer==0)
 	{
 		// Transmit Data
