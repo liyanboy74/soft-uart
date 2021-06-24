@@ -114,6 +114,17 @@ while(1)
 **Example 1:**
 
 ```c
+uint8_t getchar(uint8_t SoftUartNumber)
+{
+    uint8_t ch;
+    while(SoftUartRxAlavailable(SoftUartNumber)==0);
+    SoftUartReadRxBuffer(SoftUartNumber,&ch,1);
+    return ch;
+}
+```
+**Example 2:**
+
+```c
 uint8_t Buffer[SIZE],Len;
 
 while(1)
@@ -129,17 +140,3 @@ while(1)
 	}
 }
 ```
-**Example 2:**
-
-```c
-uint8_t getchar(uint8_t SoftUartNumber)
-{
-    uint8_t ch;
-    while(SoftUartRxAlavailable(SoftUartNumber)==0);
-    SoftUartReadRxBuffer(SoftUartNumber,&ch,1);
-    return ch;
-}
-```
-
-
-
