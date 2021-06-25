@@ -140,3 +140,50 @@ while(1)
 	}
 }
 ```
+
+**Full Example 3:**
+
+```c
+#include "softuart.h"
+
+...
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance == TIMX)
+	{
+		SoftUartHandler();
+	}
+}
+
+uint8_t getchar(uint8_t SoftUartNumber)
+{
+    uint8_t ch;
+    while(SoftUartRxAlavailable(SoftUartNumber)==0);
+    SoftUartReadRxBuffer(SoftUartNumber,&ch,1);
+    return ch;
+}
+
+int main(void)
+{
+    uint8_t ch;
+    
+    ...
+    
+    HAL_TIM_Base_Start_IT(&htimX);
+    
+    SoftUartInit(0,SU_TX_GPIO_Port,SU_TX_Pin,SU_RX_GPIO_Port,SU_RX_Pin);
+    SoftUartEnableRx(0);
+    
+    ...
+    
+    while (1)
+    {
+        ch=getchar(0);
+        SoftUartPuts(0,&ch,1);
+        //SoftUartWaitUntilTxComplate(0);
+        HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
+    }
+}
+```
+
