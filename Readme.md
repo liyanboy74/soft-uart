@@ -36,7 +36,7 @@ before using must config TX pins as output and RX pins as input , any TX pin mus
 | auto-reload preload                                   | Enable |
 | Tim global interrupt                                  | Enable |
 
-
+*You also can use [Timer frequency calculator](https://github.com/liyanboy74/timer-frequency-calculator).*
 
 ### Calling handler
 
