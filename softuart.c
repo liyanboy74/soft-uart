@@ -6,6 +6,10 @@
 
 #include "softuart.h"
 
+// Some internal define
+#define SoftUart_DATA_LEN_C1 (SoftUart_DATA_LEN+1)
+#define SoftUart_DATA_LEN_C2 (SoftUart_DATA_LEN+2)
+
 // All Soft Uart Config and State
 SoftUart_S       	SUart   [Number_Of_SoftUarts];
 
@@ -31,33 +35,33 @@ void SoftUartGpioWritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState 
 SoftUartState_E SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin)
 {
 	if(SoftUartNumber>=Number_Of_SoftUarts)return SoftUart_Error;
-	
+
 	SUart[SoftUartNumber].TxNComplated=0;
-	
+
 	SUart[SoftUartNumber].RxBitCounter=0;
 	SUart[SoftUartNumber].RxBitShift=0;
 	SUart[SoftUartNumber].RxIndex=0;
 
 	SUart[SoftUartNumber].TxEnable=0;
 	SUart[SoftUartNumber].RxEnable=0;
-	
+
 	SUart[SoftUartNumber].TxBitCounter=0;
 	SUart[SoftUartNumber].TxBitShift=0;
 	SUart[SoftUartNumber].TxIndex=0;
-	
+
 	SUart[SoftUartNumber].TxSize=0;
-	
+
 	SUart[SoftUartNumber].Buffer=&SUBuffer[SoftUartNumber];
-	
+
 	SUart[SoftUartNumber].RxPort=RxPort;
 	SUart[SoftUartNumber].RxPin=RxPin;
-	
+
 	SUart[SoftUartNumber].TxPort=TxPort;
 	SUart[SoftUartNumber].TxPin=TxPin;
-	
+
 	SUart[SoftUartNumber].RxTimingFlag=0;
 	SUart[SoftUartNumber].RxBitOffset=0;
-	
+
 	return SoftUart_OK;
 }
 
@@ -120,31 +124,31 @@ void SoftUartTxProcess(SoftUart_S *SU)
 			SU->TxBitCounter++;
 		}
 		// Data
-		else if(SU->TxBitCounter<9)
+		else if(SU->TxBitCounter<SoftUart_DATA_LEN_C1)
 		{
 			SoftUartTransmitBit(SU,((SU->Buffer->Tx[SU->TxIndex])>>(SU->TxBitShift))&0x01);
 			SU->TxBitCounter++;
 			SU->TxBitShift++;
 		}
 		// Stop
-		else if(SU->TxBitCounter==9)
+		else if(SU->TxBitCounter==SoftUart_DATA_LEN_C1)
 		{
 			SoftUartTransmitBit(SU,1);
 			SU->TxBitCounter++;
 		}
 		//Complete
-		else if(SU->TxBitCounter==10)
+		else if(SU->TxBitCounter==SoftUart_DATA_LEN_C2)
 		{
 			// Reset Bit Counter
 			SU->TxBitCounter=0;
-			
+
 			// Ready To Send Another Data
 			SU->TxIndex++;
 
 			// Check Size of Data
 			if(SU->TxSize > SU->TxIndex)
 			{
-				// Continue Sending 
+				// Continue Sending
 				SU->TxNComplated=1;
 				SU->TxEnable=1;
 			}
@@ -174,14 +178,14 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 			SU->Buffer->Rx[SU->RxIndex]=0;
 		}
 		// Data
-		else if(SU->RxBitCounter<9)
+		else if(SU->RxBitCounter<SoftUart_DATA_LEN_C1)
 		{
 			SU->Buffer->Rx[SU->RxIndex]|=((B0_1&0x01)<<SU->RxBitShift);
 			SU->RxBitCounter++;
 			SU->RxBitShift++;
 		}
 		// Stop and Complete
-		else if(SU->RxBitCounter==9)
+		else if(SU->RxBitCounter==SoftUart_DATA_LEN_C1)
 		{
 			SU->RxBitCounter=0;
 			SU->RxTimingFlag=0;
@@ -212,18 +216,18 @@ SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len)
 
 	if(SoftUartNumber>=Number_Of_SoftUarts)return SoftUart_Error;
 	if(SUart[SoftUartNumber].TxNComplated) return SoftUart_Error;
-	
+
 	SUart[SoftUartNumber].TxIndex=0;
 	SUart[SoftUartNumber].TxSize=Len;
-	
+
 	for(i=0;i<Len;i++)
 	{
 		SUart[SoftUartNumber].Buffer->Tx[i]= Str[i];
 	}
-	
+
 	SUart[SoftUartNumber].TxNComplated=1;
 	SUart[SoftUartNumber].TxEnable=1;
-	
+
 	return SoftUart_OK;
 }
 
@@ -233,7 +237,7 @@ uint8_t SoftUartScanRxPorts(void)
 	int i;
 	uint8_t Buffer=0x00,Bit;
 
-	for(i=0;i<Number_Of_SoftUarts;i++) 
+	for(i=0;i<Number_Of_SoftUarts;i++)
 	{
 		// Read RX GPIO Value
 		Bit=SoftUartGpioReadPin(SUart[i].RxPort,SUart[i].RxPin);
@@ -246,7 +250,7 @@ uint8_t SoftUartScanRxPorts(void)
 			SUart[i].RxBitOffset=((SU_Timer+2)%5);
 
 			// Timing Offset is Set
-			SUart[i].RxTimingFlag=1;	
+			SUart[i].RxTimingFlag=1;
 		}
 
 		// Add all RX GPIO State to Buffer
@@ -261,10 +265,10 @@ void SoftUartHandler(void)
 {
 	int     	i;
 	uint8_t 	SU_DBuffer;
-	
+
 	// Capture RX and Get BitOffset
 	SU_DBuffer = SoftUartScanRxPorts();
-	
+
 	for(i=0;i < Number_Of_SoftUarts;i++)
 	{
 		// Receive Data if we in middle data pulse position
@@ -273,8 +277,8 @@ void SoftUartHandler(void)
 			SoftUartRxDataBitProcess(&SUart[i],((SU_DBuffer>>i)&0x01));
 		}
 	}
-	
-	// Sending always happens in the first time slot 
+
+	// Sending always happens in the first time slot
 	if(SU_Timer==0)
 	{
 		// Transmit Data

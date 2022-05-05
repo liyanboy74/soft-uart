@@ -1,6 +1,2 @@
-MDK-ARM/SoftUart.uvguix.*
-MDK-ARM/*.scvd
-MDK-ARM/*.lst
-MDK-ARM/SoftUart
-MDK-ARM/RTE
-.mxproject
+main.h
+*.o

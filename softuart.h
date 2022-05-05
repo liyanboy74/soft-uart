@@ -11,6 +11,8 @@
 #define 	SoftUartTxBufferSize	32
 #define 	SoftUartRxBufferSize	64
 
+#define     SoftUart_DATA_LEN       8  // Bit
+
 typedef enum {
 	SoftUart_OK,
 	SoftUart_Error
@@ -36,7 +38,6 @@ typedef struct {
 	uint16_t 		RxPin;
 	uint8_t 		RxTimingFlag;
 	uint8_t 		RxBitOffset;
-	
 } SoftUart_S;
 
 //Call Every (0.2)*(1/9600) = 20.83 uS
