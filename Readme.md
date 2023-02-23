@@ -106,7 +106,7 @@ while(1)
 	SoftUartPuts(2,(uint8_t *)"Name",4);
 	SoftUartPuts(3,(uint8_t *)"Is",2);
 	SoftUartPuts(4,(uint8_t *)"Esmaeill",8);
-	SoftUartPuts(5,(uint8_t *)"Maarfavi",8);
+	SoftUartPuts(5,(uint8_t *)"--------",8);
 }
 ```
 ![LogicAnalizer](https://user-images.githubusercontent.com/64005694/121798942-836e1380-cc3e-11eb-96bd-faa72cd72c03.jpg)
