@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "STM32F103C8T6",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "USE_HAL_DRIVER",
+                "STM32F103xB"
+            ],
+        }
+    ],
+    "version": 4
+}

@@ -6,7 +6,7 @@
 
 #include "main.h"
 
-#define 	Number_Of_SoftUarts 	6 	// Max 8
+#define 	Number_Of_SoftUarts 	1 	// Max 8
 
 #define 	SoftUartTxBufferSize	32
 #define 	SoftUartRxBufferSize	64
