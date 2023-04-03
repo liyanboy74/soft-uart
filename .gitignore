@@ -1,5 +1,4 @@
 build
 example/.vscode/settings.json
 example/.vscode/.cortex-debug.registers.state.json
-example/Drivers
 *.o
