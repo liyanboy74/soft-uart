@@ -7,8 +7,12 @@
 #include "softuart.h"
 
 // Some internal define
-#define SoftUart_DATA_LEN_C1 (SoftUart_DATA_LEN+1)
-#define SoftUart_DATA_LEN_C2 (SoftUart_DATA_LEN+2)
+#if(SoftUart_PARITY)
+#define SoftUart_IDEF_LEN_C1 (SoftUart_DATA_LEN+2)
+#else
+#define SoftUart_IDEF_LEN_C1 (SoftUart_DATA_LEN+1)
+#endif
+#define SoftUart_IDEF_LEN_C2 (SoftUart_IDEF_LEN_C1 + SoftUart_STOP_Bit)
 
 // All Soft Uart Config and State
 SoftUart_S       	SUart   [Number_Of_SoftUarts];
@@ -124,20 +128,27 @@ void SoftUartTxProcess(SoftUart_S *SU)
 			SU->TxBitCounter++;
 		}
 		// Data
-		else if(SU->TxBitCounter<SoftUart_DATA_LEN_C1)
+		else if(SU->TxBitCounter<(SoftUart_DATA_LEN+1))
 		{
 			SoftUartTransmitBit(SU,((SU->Buffer->Tx[SU->TxIndex])>>(SU->TxBitShift))&0x01);
 			SU->TxBitCounter++;
 			SU->TxBitShift++;
 		}
+		// Parity
+		else if(SU->TxBitCounter<SoftUart_IDEF_LEN_C1)
+		{
+			// Need to be check
+			SoftUartTransmitBit(SU,0);
+			SU->TxBitCounter++;
+		}
 		// Stop
-		else if(SU->TxBitCounter==SoftUart_DATA_LEN_C1)
+		else if(SU->TxBitCounter<SoftUart_IDEF_LEN_C2)
 		{
 			SoftUartTransmitBit(SU,1);
 			SU->TxBitCounter++;
 		}
 		//Complete
-		else if(SU->TxBitCounter==SoftUart_DATA_LEN_C2)
+		else if(SU->TxBitCounter==SoftUart_IDEF_LEN_C2)
 		{
 			// Reset Bit Counter
 			SU->TxBitCounter=0;
@@ -178,14 +189,21 @@ void SoftUartRxDataBitProcess(SoftUart_S *SU,uint8_t B0_1)
 			SU->Buffer->Rx[SU->RxIndex]=0;
 		}
 		// Data
-		else if(SU->RxBitCounter<SoftUart_DATA_LEN_C1)
+		else if(SU->RxBitCounter<(SoftUart_DATA_LEN+1))
 		{
 			SU->Buffer->Rx[SU->RxIndex]|=((B0_1&0x01)<<SU->RxBitShift);
 			SU->RxBitCounter++;
 			SU->RxBitShift++;
 		}
-		// Stop and Complete
-		else if(SU->RxBitCounter==SoftUart_DATA_LEN_C1)
+		// Parity
+		else if(SU->RxBitCounter<SoftUart_IDEF_LEN_C1)
+		{
+			// Need to be check
+			// B0_1;
+			SU->RxBitCounter++;
+		}
+		// Stop & Complete
+		else if(SU->RxBitCounter<SoftUart_IDEF_LEN_C2)
 		{
 			SU->RxBitCounter=0;
 			SU->RxTimingFlag=0;
