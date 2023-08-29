@@ -21,7 +21,7 @@ if `BR=9600` then `0.2*(1/9600)=20.8333333 uS`
 *you also available for use [lite](https://github.com/liyanboy74/soft-uart-lite) version by limited options for slow MCUs.*
 
 The library don't change any GPIO config!
-before using must config TX pins as output and RX pins as input , any TX pin must set to 1 as IDLE and any RX pin must be Pullup.
+before using must config TX pins as output and RX pins as input , any TX pin must set to HIGH and any RX pin must be Pullup.
 
 
 
