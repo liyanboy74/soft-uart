@@ -23,6 +23,9 @@ SoftUartBuffer_S 	SUBuffer[Number_Of_SoftUarts];
 // For timing division
 __IO  uint8_t 		SU_Timer=0;
 
+// Parity var
+static uint8_t DV,PCount;
+
 // Read RX single Pin Value
 GPIO_PinState SoftUartGpioReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 {
@@ -126,19 +129,28 @@ void SoftUartTxProcess(SoftUart_S *SU)
 			SU->TxBitShift=0;
 			SoftUartTransmitBit(SU,0);
 			SU->TxBitCounter++;
+			PCount=0;
 		}
 		// Data
 		else if(SU->TxBitCounter<(SoftUart_DATA_LEN+1))
 		{
-			SoftUartTransmitBit(SU,((SU->Buffer->Tx[SU->TxIndex])>>(SU->TxBitShift))&0x01);
+			DV=((SU->Buffer->Tx[SU->TxIndex])>>(SU->TxBitShift))&0x01;
+			SoftUartTransmitBit(SU,DV);
 			SU->TxBitCounter++;
 			SU->TxBitShift++;
+
+			if(DV)PCount++;
 		}
 		// Parity
 		else if(SU->TxBitCounter<SoftUart_IDEF_LEN_C1)
 		{
-			// Need to be check
-			SoftUartTransmitBit(SU,0);
+			// Check Even or Odd
+			DV=PCount%2;
+
+			// if Odd Parity
+			if(SoftUart_PARITY==1)DV=!DV;
+
+			SoftUartTransmitBit(SU,DV);
 			SU->TxBitCounter++;
 		}
 		// Stop
