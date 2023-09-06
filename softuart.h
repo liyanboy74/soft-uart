@@ -12,7 +12,7 @@
 #define 	SoftUartRxBufferSize	64
 
 #define 	SoftUart_DATA_LEN   	8 	// Max 8 Bit
-#define 	SoftUart_PARITY     	0   // 0=None 1=odd 2=even  ! Not Calculate
+#define 	SoftUart_PARITY     	0   // 0=None 1=odd 2=even
 #define 	SoftUart_STOP_Bit   	1   // Number of stop bits
 
 typedef enum {
