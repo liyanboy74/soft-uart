@@ -47,7 +47,7 @@ void 		SoftUartHandler(void);
 
 void 		SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber);
 uint8_t 	SoftUartRxAlavailable(uint8_t SoftUartNumber);
-SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len);
+SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Data,uint8_t Len);
 SoftUartState_E SoftUartEnableRx(uint8_t SoftUartNumber);
 SoftUartState_E SoftUartDisableRx(uint8_t SoftUartNumber);
 SoftUartState_E SoftUartInit(uint8_t SoftUartNumber,GPIO_TypeDef *TxPort,uint16_t TxPin,GPIO_TypeDef *RxPort,uint16_t RxPin);

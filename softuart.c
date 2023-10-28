@@ -240,7 +240,7 @@ void SoftUartWaitUntilTxComplate(uint8_t SoftUartNumber)
 }
 
 // Copy Data to Transmit Buffer and Start Sending
-SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len)
+SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Data,uint8_t Len)
 {
 	int i;
 
@@ -252,7 +252,7 @@ SoftUartState_E SoftUartPuts(uint8_t SoftUartNumber,uint8_t *Str,uint8_t Len)
 
 	for(i=0;i<Len;i++)
 	{
-		SUart[SoftUartNumber].Buffer->Tx[i]= Str[i];
+		SUart[SoftUartNumber].Buffer->Tx[i]= Data[i];
 	}
 
 	SUart[SoftUartNumber].TxNComplated=1;
