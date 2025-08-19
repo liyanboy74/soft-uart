@@ -18,7 +18,7 @@
 SoftUart_S       	SUart   [Number_Of_SoftUarts];
 
 // TX RX Data Buffer
-SoftUartBuffer_S 	SUBuffer[Number_Of_SoftUarts];
+__IO SoftUartBuffer_S 	SUBuffer[Number_Of_SoftUarts];
 
 // For timing division
 __IO  uint8_t 		SU_Timer=0;
